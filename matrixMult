@@ -1,0 +1,11 @@
+#include <iostream.h>
+
+int matOne[MAX][MAX];
+int matTwo[MAX][MAX];
+int matThree[MAX][MAX];
+int step=0;
+
+int main()
+{
+    
+}
