@@ -3,12 +3,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define MAX_THREAD 400
-#define m 20
-#define k 20
-#define n 20
+#define MAX_THREAD 20
+#define M 20
 
-float A[m][k] = { {0.01, 0.07, 0.06, 0.08, 0.03, 0.06, 0.00, 0.07, 0.06, 0.03, 0.03, 0.10, 0.07, 0.05, 0.05, 0.08, 0.07, 0.01, 0.08, 0.02 },
+float A[M][M] = { {0.01, 0.07, 0.06, 0.08, 0.03, 0.06, 0.00, 0.07, 0.06, 0.03, 0.03, 0.10, 0.07, 0.05, 0.05, 0.08, 0.07, 0.01, 0.08, 0.02 },
                 {0.11, 0.07, 0.06, 0.08, 0.10, 0.06, 0.10, 0.03, 0.03, 0.01, 0.05, 0.00, 0.04, 0.07, 0.03, 0.11, 0.07, 0.03, 0.02, 0.06 },
                 {0.06, 0.08, 0.06, 0.01, 0.04, 0.02, 0.12, 0.01, 0.11, 0.04, 0.03, 0.09, 0.01, 0.01, 0.02, 0.02, 0.07, 0.09, 0.08, 0.07 },
                 {0.03, 0.02, 0.02, 0.01, 0.00, 0.01, 0.05, 0.02, 0.09, 0.09, 0.04, 0.07, 0.06, 0.02, 0.03, 0.07, 0.00, 0.10, 0.01, 0.08 },
@@ -30,7 +28,7 @@ float A[m][k] = { {0.01, 0.07, 0.06, 0.08, 0.03, 0.06, 0.00, 0.07, 0.06, 0.03, 0
                 {0.07, 0.08, 0.04, 0.03, 0.06, 0.08, 0.11, 0.08, 0.06, 0.04, 0.00, 0.01, 0.09, 0.00, 0.08, 0.03, 0.04, 0.01, 0.08, 0.10 } };
 
 
-float B[k][n] = { {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
+float B[M][M] = { {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
                 {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
                 {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
                 {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
@@ -52,56 +50,52 @@ float B[k][n] = { {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1
                 {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 } };
 
 
-
-float C[m][n];
+float C[M][M];
 int step=0;
 
 
 void* multiply(void* arg)
 {
+    int core = step++;
 
-    for(int i= 0; i<(m*n);i++)
-    {
-        for(int j=0; j<20; j++)
-        {
-            for(int x=0; x<20;x++)
-            {
-                C[i][j]+=A[i][k]*B[k][j];
-            }
-        }
-    }
+    for (int i = core * M / MAX_THREAD; i < (core + 1) * M / MAX_THREAD; i++)
+        for (int j = 0; j < M; j++)
+            for (int k = 0; k < M; k++)
+                C[i][j] += A[i][k] * B[k][j];
 }
 int main()
 {
     //pthread for 400 threads
     pthread_t threads[MAX_THREAD];
 
-    for (int i = 0; i < 20; i++){
-      for (int j = 0; j < 20; j++){
+    for (int i = 0; i < M; i++){
+      for (int j = 0; j < M; j++){
         C[i][j] = 0;
       }
     }
 
 
     //creating threads to multiply individual elements
-    for(int i=0;i<MAX_THREAD;i++)
+    for(int i=0;i < MAX_THREAD;i++)
     {
-        int* p;
-        pthread_create(&threads[i], NULL, multiply,(void*)(p));
+      int* p;
+      if (pthread_create(&threads[i], NULL, multiply, (void*)(p))){
+        perror("Thread Error");
+    		exit(-1);
+      }
     }
 
     //Joining threads together after multiplication has been performed
-    for(int i=0; i<MAX_THREAD; i++)
+    for(int i=0; i < MAX_THREAD; i++)
     {
         pthread_join(threads[i],NULL);
     }
 
    //OUTPUT
-     for (int i = 0; i < 20; i++)
+     for (int i = 0; i < M; i++)
      {
-        for (int j = 0; j < 20; j++)
+        for (int j = 0; j < M; j++)
         {
-            C[i][j] = '.';
             printf("%f ", C[i][j]);
         }
         printf("\n");
