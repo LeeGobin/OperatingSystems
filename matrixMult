@@ -70,6 +70,7 @@ void* multiply(void* arg)
             }
         }
     }
+}
 int main()
 {
     //pthread for 400 threads 
@@ -88,15 +89,27 @@ int main()
         pthread_join(threads[i],NULL);
     }
 
-    printf("OUTPUT"\n)
+   //OUTPUT
+     for (int i = 0; i < 20; i++) 
+     {
+        for (int j = 0; j < 20; j++) 
+        {
+            C[i][j] = '.';
+            printf("%f ", C[i][j]);
+        }
+        printf("\n");
+    }
+
+
+   /* //OUTPUT
+    printf("OUTPUT");
     for (int i = 0; i < 20; i++) 
     { 
         for (int j = 0; j < 20; j++)
         {
             printf(C[i][j]);
         }  
-    }    
-
+    }    */
 
     return 0;
 }
