@@ -65,6 +65,9 @@ void* multiply(void* arg)
 }
 int main()
 {
+    FILE *outfile;
+
+    outfile = fopen("out.txt", "w");
     //pthread for 400 threads
     pthread_t threads[MAX_THREAD];
 
@@ -96,21 +99,12 @@ int main()
      {
         for (int j = 0; j < M; j++)
         {
-            printf("%f ", C[i][j]);
+            fprintf(outfile,"%f ", C[i][j]);
         }
-        printf("\n");
+        fprintf(outfile,"\n");
     }
 
-
-   /* //OUTPUT
-    printf("OUTPUT");
-    for (int i = 0; i < 20; i++)
-    {
-        for (int j = 0; j < 20; j++)
-        {
-            printf(C[i][j]);
-        }
-    }    */
+    fclose(outfile);
 
     return 0;
 }
